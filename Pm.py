@@ -3,7 +3,8 @@
 # Code by Yinzo:        https://github.com/Yinzo
 # Origin repository:    https://github.com/Yinzo/SmartQQBot
 
-import threading
+import json
+import redis
 
 from QQLogin import *
 from Configs import *
@@ -12,6 +13,9 @@ from HttpClient import *
 
 
 class Pm:
+
+    redis = redis.Redis(host='115.28.33.37', db=1)
+
     def __init__(self, operator, ip):
         assert isinstance(operator, QQ), "Pm's operator is not a QQ"
         self.__operator = operator
@@ -31,6 +35,7 @@ class Pm:
             "command_1arg",
             "repeat",
             "callout",
+            "enqueue",
         ]
         logging.info(str(self.tid) + "私聊已激活, 当前执行顺序： " + str(self.process_order))
 
@@ -44,6 +49,7 @@ class Pm:
 
     def handle(self, msg):
         self.update_config()
+        print self.config
         logging.info("msg handling.")
         # 仅关注消息内容进行处理 Only do the operation of handle the msg content
         for func in self.process_order:
@@ -55,7 +61,7 @@ class Pm:
                         self.msg_list.append(msg)
                         return func
             except ConfigParser.NoOptionError as er:
-                logging.warning(er, "没有找到" + func + "功能的对应设置，请检查共有配置文件是否正确设置功能参数")
+                logging.warning("%s, %s", er, "没有找到" + func + "功能的对应设置，请检查共有配置文件是否正确设置功能参数")
         self.msg_list.append(msg)
 
     def reply(self, reply_content, fail_times=0):
@@ -118,3 +124,22 @@ class Pm:
             logging.info("command format detected, command:{0}, arg1:{1}".format(command, arg1))
 
         return False
+
+    def enqueue(self, msg):
+        data = {
+            "from": dict(tid=self.tid),
+            "message": msg.content
+        }
+        self.redis.lpush("qq!private_messages: %s" % self.tid, json.dumps(data, ensure_ascii=False))
+
+        tries = 0
+        replies = []
+        while not replies:
+            if tries >= 3:
+                break
+
+            time.sleep(1)
+            replies, _ = self.redis.pipeline().lrange("qq!private_replies: %s" % self.tid, 0, 1).delete("qq!private_replies: %s" % self.tid).execute()
+
+        for reply in replies:
+            self.reply(reply)

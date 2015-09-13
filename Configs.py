@@ -52,6 +52,7 @@ class DefaultConfigs(Configs):
             self.conf.set('pm', "repeat", "0")
             self.conf.set('pm', 'command_0arg', '0')
             self.conf.set('pm', 'command_1arg', '0')
+            self.conf.set('pm', 'enqueue', '1')
 
             self.conf.set('group', 'use_private_config', '0')
             self.conf.set('group', "callout", "0")

@@ -43,6 +43,7 @@ def date_to_millis(d):
 
 
 class QQ:
+
     def __init__(self):
         self.default_config = DefaultConfigs()
         self.req = HttpClient()
@@ -167,10 +168,12 @@ class QQ:
                 error_times = 0
 
         # 调用后进入单次轮询，等待服务器发回状态。
-        html = self.req.Post('http://d.web2.qq.com/channel/poll2', {
-            'r': '{{"ptwebqq":"{1}","clientid":{2},"psessionid":"{0}","key":""}}'.format(self.psessionid, self.ptwebqq,
-                                                                                         self.client_id)
-        }, self.default_config.conf.get("global", "connect_referer"))
+        params = dict(ptwebqq=self.ptwebqq, clientid=self.client_id, psessionid=self.psessionid, key="")
+        html = self.req.Post(
+            'http://d.web2.qq.com/channel/poll2',
+            dict(r=json.dumps(params)),
+            self.default_config.conf.get("global", "connect_referer")
+        )
         logging.debug("check_msg html:  " + str(html))
         try:
             if html == "":

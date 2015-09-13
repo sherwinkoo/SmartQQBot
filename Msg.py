@@ -3,6 +3,7 @@
 # Code by Yinzo:        https://github.com/Yinzo
 # Origin repository:    https://github.com/Yinzo/SmartQQBot
 
+
 class Msg:
 
     def __init__(self, json_input):
