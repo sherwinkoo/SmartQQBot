@@ -8,13 +8,6 @@ from Pm import *
 from Sess import *
 import threading
 
-logging.basicConfig(
-    filename='smartqq.log',
-    level=logging.DEBUG,
-    format='%(asctime)s  %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
-    datefmt='%a, %d %b %Y %H:%M:%S',
-)
-
 
 class MsgHandler:
     def __init__(self, operator):

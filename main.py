@@ -2,6 +2,7 @@
 # Code by Yinzo:        https://github.com/Yinzo
 # Origin repository:    https://github.com/Yinzo/SmartQQBot
 
+import time
 import sys
 import socket
 import json
@@ -41,24 +42,26 @@ def dump_login_state(c, bot):
     c.set("qq!login_state", json.dumps(state, ensure_ascii=False))
 
 
-if __name__ == '__main__':
-
-    client = Redis(host="115.28.33.37", db=2)
+def main():
+    client = Redis(host="127.0.0.1", db=2)
 
     bot = QQ()
-    # if not reload_login_state(client, bot):
     if True:
-        bot.login_by_qrcode()
-    else:
-        logging.info("Reload login state... OK")
+    # if not reload_login_state(client, bot):
+        ok, message = bot.login_by_qrcode()
+        if not ok:
+            logging("Login failed: %s", message)
+            return
 
     try:
         bot_handler = MsgHandler(bot)
-        while 1:
+        while True:
+            time.sleep(0.5)
             try:
                 new_msg = bot.check_msg()
-            except socket.timeout, e:
-                logging.warning("check msg timeout, retrying...")
+                print "message: ", new_msg
+            except socket.timeout as ex:
+                logging.warning("check msg timeout, retrying... %s", ex)
                 continue
             if new_msg is not None:
                 bot_handler.handle(new_msg)
@@ -67,3 +70,12 @@ if __name__ == '__main__':
     finally:
         dump_login_state(client, bot)
         logging.info("Dump login state... OK")
+
+if __name__ == '__main__':
+    logging.basicConfig(
+        # filename='smartqq.log',
+        level=logging.DEBUG,
+        format='%(asctime)s  %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+        datefmt='%a, %d %b %Y %H:%M:%S',
+    )
+    main()
